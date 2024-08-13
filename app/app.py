@@ -2,7 +2,7 @@ import asyncio
 import streamlit as st
 from streamlit_extras.bottom_container import bottom
 from api.ollama import ollama_api
-from utils.helper.ChatHistory import update_system_prompt, read_system_prompt, save_to_json, read_chat_history
+from utils.helper.ChatHistory import clear_chat_history, update_system_prompt, read_system_prompt, save_to_json, read_chat_history
 
 
 def display_chat_history(chat_history):
@@ -26,12 +26,17 @@ async def main():
     system_prompt = st.sidebar.text_area("Enter System Prompt", "", placeholder="You are a helpful assistant.")
     submit_button = st.sidebar.button("Submit System Prompt")
 
+    clear_history_button = st.sidebar.button("Clear Chat History")
+
     if submit_button:
         update_system_prompt(system_prompt)
+    
+    if clear_history_button:
+        clear_chat_history()
 
     # Check if system prompt is submitted and not empty
     if read_system_prompt() == []:
-        st.sidebar.error("System prompt cannot be empty. Please enter a system prompt and save it.")
+        st.sidebar.warning("System prompt cannot be empty. Please enter a system prompt and save it.")
         return  # Exit the function if system prompt is empty
     
     # Proceed with the main content if system prompt is valid
@@ -40,7 +45,7 @@ async def main():
 
     user_prompt = bottom_container()
     if user_prompt is not None and user_prompt != '':
-        response = await(ollama_api(user_prompt))
+        response = await ollama_api(user_prompt)
         with st.container(border=False, height=500):
             chat_history = await read_chat_history()
             display_chat_history(chat_history)
